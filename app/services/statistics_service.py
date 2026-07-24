@@ -13,7 +13,7 @@ class StatisticsService:
     def get_players_top_scorers(self, db: Session, limit: int = 10):
         return self.repository.get_players_top_scorers(db, limit=limit)
 
-=    def get_matches_most_goals(self, db: Session, limit: int = 10):
+    def get_matches_most_goals(self, db: Session, limit: int = 10):
         rows = self.repository.get_matches_most_goals(db, limit=limit)
         return [
             {
