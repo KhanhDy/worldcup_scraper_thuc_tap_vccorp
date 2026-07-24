@@ -5,3 +5,5 @@ alembic.ini
 __pycache__/
 
 *.py[cod]
+
+PROJECT_DOCUMENTATION.md
