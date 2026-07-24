@@ -18,12 +18,7 @@ class Goal(Base):
     is_penalty: Mapped[bool] = mapped_column(Boolean, nullable=False)
     is_own_goal: Mapped[bool] = mapped_column(Boolean, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, server_default=func.now())
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime,
-        nullable=False,
-        server_default=func.now(),
-        onupdate=func.now(),
-    )
+    updated_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, server_default=func.now(), onupdate=func.now())
 
     match = relationship("Match", back_populates="goals")
     world_cup = relationship("WorldCup", back_populates="goals")

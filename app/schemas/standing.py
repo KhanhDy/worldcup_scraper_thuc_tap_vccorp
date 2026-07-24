@@ -29,3 +29,7 @@ class StandingResponse(StandingBase):
     updated_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class StandingTableResponse(StandingResponse):
+    team_name: str

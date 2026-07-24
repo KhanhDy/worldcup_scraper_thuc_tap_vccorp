@@ -23,12 +23,7 @@ class Standing(Base):
     points: Mapped[int] = mapped_column(Integer, nullable=False)
     qualified: Mapped[bool] = mapped_column(Boolean, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, server_default=func.now())
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime,
-        nullable=False,
-        server_default=func.now(),
-        onupdate=func.now(),
-    )
+    updated_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, server_default=func.now(), onupdate=func.now())
 
     world_cup = relationship("WorldCup", back_populates="standings")
     team = relationship("Team")

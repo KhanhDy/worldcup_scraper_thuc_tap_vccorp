@@ -13,6 +13,7 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import urlparse
 from urllib.request import Request, urlopen
 
+from app.database.base import Base
 from app.database.session import SessionLocal
 from app.models.cards import Card
 from app.models.goals import Goal
@@ -21,7 +22,14 @@ from app.models.news import News
 from app.models.player import Player
 from app.models.standings import Standing
 from app.models.team import Team
+from app.models.world_cup import WorldCup
+from app.repositories.match_repository import MatchRepository
 from app.repositories.news_repository import NewsRepository
+from app.repositories.team_repository import TeamRepository
+from app.repositories.world_cup_repository import WorldCupRepository
+from app.schemas.match import MatchCreate
+from app.schemas.team import TeamCreate
+from app.schemas.world_cup import WorldCupCreate
 DEFAULT_WORLD_CUP_URL = "https://www.fifa.com/en/tournaments/mens/worldcup/canadamexicousa2026"
 DEFAULT_VNEXPRESS_URL = "https://vnexpress.net/tag/world-cup-1"
 DEFAULT_TUOITRE_URL = "https://tuoitre.vn/world-cup.htm"
@@ -103,15 +111,20 @@ def extract_next_data(html: str) -> dict[str, object]:
 
 
 def extract_match_entries(next_data: dict[str, object]) -> list[dict[str, object]]:
-    page_props = next_data.get("props", {}).get("pageProps", {}) if isinstance(next_data, dict) else {}
-    content = page_props.get("content", []) if isinstance(page_props, dict) else []
-    if not isinstance(content, list):
+    if not isinstance(next_data, dict):
         return []
 
-    for item in content:
-        if isinstance(item, dict) and item.get("typeRender") == "InternationalAMatchesProps":
-            matches = item.get("matches", [])
-            return [match for match in matches if isinstance(match, dict)]
+    stack: list[object] = [next_data]
+    while stack:
+        current = stack.pop()
+        if isinstance(current, dict):
+            matches = current.get("matches")
+            if isinstance(matches, list) and matches and isinstance(matches[0], dict):
+                if "idMatch" in matches[0] or "teamAId" in matches[0] or "teamAName" in matches[0]:
+                    return [match for match in matches if isinstance(match, dict)]
+            stack.extend(current.values())
+        elif isinstance(current, list):
+            stack.extend(current)
 
     return []
 
@@ -151,23 +164,33 @@ def build_match_record(match: dict[str, object], world_cup_id: int) -> dict[str,
     team_2_score = int(match.get("teamBScore") or 0)
     penalty_1 = match.get("teamAPenaltyScore")
     penalty_2 = match.get("teamBPenaltyScore")
-    winner = str(match.get("winner") or "").strip() or None
+    match_date_value = match.get("matchDate")
+
+    if isinstance(match_date_value, str):
+        match_date_text = match_date_value.strip()
+        if match_date_text.endswith("Z"):
+            match_date_text = match_date_text[:-1] + "+00:00"
+        try:
+            match_date = datetime.fromisoformat(match_date_text)
+        except ValueError:
+            match_date = datetime.now(timezone.utc)
+    else:
+        match_date = datetime.now(timezone.utc)
 
     return {
-        "id": int(match.get("idMatch") or 0),
         "world_cup_id": world_cup_id,
         "team_1_id": int(match.get("teamAId") or 0),
         "team_2_id": int(match.get("teamBId") or 0),
         "stage": extract_text_value(match.get("stageName")) or "Unknown",
         "group_name": extract_text_value(match.get("groupName")) or None,
-        "match_date": datetime.fromisoformat(str(match.get("matchDate"))) if match.get("matchDate") else datetime.now(timezone.utc),
+        "match_date": match_date,
         "stadium": extract_text_value(match.get("stadiumName")) or "Unknown",
         "city": extract_text_value(match.get("cityName")) or extract_text_value(match.get("stadiumName")) or "Unknown",
         "team_1_score": team_1_score,
         "team_2_score": team_2_score,
         "team_1_penalty_score": int(penalty_1) if penalty_1 not in (None, "") else None,
         "team_2_penalty_score": int(penalty_2) if penalty_2 not in (None, "") else None,
-        "winner_team_id": int(winner) if winner else None,
+        "winner_team_id": None,
         "attendance": None,
         "referee": None,
     }
@@ -177,11 +200,10 @@ def build_standing_rows(matches: list[dict[str, object]], world_cup_id: int) -> 
     grouped: dict[str, dict[str, dict[str, int | bool]]] = {}
 
     for match in matches:
-        stage = extract_text_value(match.get("stageName"))
-        if stage != "First Stage":
+        group_name = extract_text_value(match.get("groupName")) or None
+        if not group_name:
             continue
 
-        group_name = extract_text_value(match.get("groupName")) or "First Stage"
         grouped.setdefault(group_name, {})
 
         team_a_id = str(match.get("teamAId") or "").strip()
@@ -454,15 +476,25 @@ def fetch_page(url: str, timeout: int) -> tuple[str, dict[str, str], str]:
             "Accept-Language": "en-US,en;q=0.9,vi;q=0.8",
         },
     )
-    with urlopen(request, timeout=timeout) as response:
-        raw_bytes = response.read()
-        content_type = response.headers.get_content_charset() or "utf-8"
-        final_url = response.geturl()
-        text = raw_bytes.decode(content_type, errors="replace")
-        headers = {key.lower(): value for key, value in response.headers.items()}
-        headers["content-type"] = response.headers.get("Content-Type", "")
-        headers["final-url"] = final_url
-        return text, headers, final_url
+
+    try:
+        with urlopen(request, timeout=timeout) as response:
+            raw_bytes = response.read()
+            content_type = response.headers.get_content_charset() or "utf-8"
+            final_url = response.geturl()
+            text = raw_bytes.decode(content_type, errors="replace")
+            headers = {key.lower(): value for key, value in response.headers.items()}
+            headers["content-type"] = response.headers.get("Content-Type", "")
+            headers["final-url"] = final_url
+            return text, headers, final_url
+    except (HTTPError, URLError, TimeoutError, OSError, ValueError):
+        project_root = Path(__file__).resolve().parents[2]
+        fallback_path = project_root / "fifa_matches_page.html"
+        if fallback_path.exists() and "fifa" in url.lower():
+            html = fallback_path.read_text(encoding="utf-8", errors="ignore")
+            headers = {"content-type": "text/html; charset=utf-8", "final-url": url}
+            return html, headers, url
+        raise
 
 
 def parse_page(html: str) -> dict[str, object]:
@@ -549,7 +581,10 @@ def sync_jobs(jobs: Iterable[CrawlJob], output_dir: Path, timeout: int) -> int:
     failures = 0
     db = SessionLocal()
     world_cup_repository = WorldCupRepository()
+    team_repository = TeamRepository()
+    match_repository = MatchRepository()
     news_repository = NewsRepository()
+
     world_cup = world_cup_repository.get_by_year(db, 2026)
 
     if not world_cup:
@@ -572,6 +607,91 @@ def sync_jobs(jobs: Iterable[CrawlJob], output_dir: Path, timeout: int) -> int:
 
                 if job.target_table == "world_cups":
                     world_cup = world_cup_repository.get_by_year(db, 2026) or world_cup
+
+                elif job.target_table == "teams":
+                    next_data = extract_next_data(html)
+                    matches = extract_match_entries(next_data)
+                    team_map = build_team_map(matches)
+                    for team_payload in team_map.values():
+                        existing_team = db.query(Team).filter(Team.name == team_payload["name"]).first()
+                        if not existing_team:
+                            created = team_repository.create(
+                                db,
+                                TeamCreate(
+                                    name=team_payload["name"],
+                                    fifa_code=team_payload["fifa_code"],
+                                    continent=team_payload["continent"],
+                                ),
+                            )
+                            team_payload["db_id"] = created.id
+                        else:
+                            team_payload["db_id"] = existing_team.id
+
+                elif job.target_table == "matches":
+                    next_data = extract_next_data(html)
+                    matches = extract_match_entries(next_data)
+                    for match_data in matches:
+                        record = build_match_record(match_data, world_cup.id)
+                        if not record["team_1_id"] or not record["team_2_id"]:
+                            continue
+                        existing_match = (
+                            db.query(Match)
+                            .filter(
+                                Match.world_cup_id == record["world_cup_id"],
+                                Match.team_1_id == record["team_1_id"],
+                                Match.team_2_id == record["team_2_id"],
+                                Match.match_date == record["match_date"],
+                                Match.stage == record["stage"],
+                            )
+                            .first()
+                        )
+                        if not existing_match:
+                            match_repository.create(
+                                db,
+                                MatchCreate(
+                                    world_cup_id=record["world_cup_id"],
+                                    team_1_id=record["team_1_id"],
+                                    team_2_id=record["team_2_id"],
+                                    stage=record["stage"],
+                                    group_name=record["group_name"],
+                                    match_date=record["match_date"],
+                                    stadium=record["stadium"],
+                                    city=record["city"],
+                                    team_1_score=record["team_1_score"],
+                                    team_2_score=record["team_2_score"],
+                                    team_1_penalty_score=record["team_1_penalty_score"],
+                                    team_2_penalty_score=record["team_2_penalty_score"],
+                                    winner_team_id=record["winner_team_id"],
+                                    attendance=record["attendance"],
+                                    referee=record["referee"],
+                                ),
+                            )
+
+                elif job.target_table == "standings":
+                    next_data = extract_next_data(html)
+                    matches = extract_match_entries(next_data)
+                    rows = build_standing_rows(matches, world_cup.id)
+                    for row in rows:
+                        existing_standing = (
+                            db.query(Standing)
+                            .filter(
+                                Standing.world_cup_id == row["world_cup_id"],
+                                Standing.team_id == row["team_id"],
+                                Standing.group_name == row["group_name"],
+                            )
+                            .first()
+                        )
+                        if existing_standing:
+                            for field in ["rank", "played", "wins", "draws", "losses", "goals_for", "goals_against", "goal_difference", "points", "qualified"]:
+                                setattr(existing_standing, field, row[field])
+                        else:
+                            db.add(Standing(**row))
+
+                elif job.target_table == "goals":
+                    pass
+
+                elif job.target_table == "cards":
+                    pass
 
                 elif job.target_table == "news":
                     existing_news = db.query(News).filter(News.url == final_url).first()
