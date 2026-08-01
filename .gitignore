@@ -2,6 +2,7 @@
 .env
 app/.env
 alembic.ini
+.gitignore
 
 # Python
 __pycache__/
