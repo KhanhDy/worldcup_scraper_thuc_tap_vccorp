@@ -221,5 +221,5 @@ python -m unittest discover -s tests -p "test_*.py" -v
 
 - Bổ sung nguồn dữ liệu thẻ phạt (Wikipedia/RSSSF) cho các kỳ gần đây.
 - Cải thiện trích xuất tên tác giả tin tức theo từng báo.
-- Thêm phân trang thật cho API danh sách (hiện trả toàn bộ kết quả).
+- Thêm frontend cho API danh sách (hiện trả toàn bộ kết quả dưới dạng json).
 - Lên lịch crawl định kỳ (cron/Celery Beat) thay vì chạy tay.
