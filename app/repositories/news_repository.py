@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 from sqlalchemy.orm import Session
 
 from app.models.news import News
@@ -15,7 +17,15 @@ class NewsRepository:
         return db.query(News).filter(News.world_cup_id == world_cup_id).all()
 
     def create(self, db: Session, data: NewsCreate):
-        news = News(**data.model_dump())
+        payload = data.model_dump()
+        now = datetime.now(timezone.utc)
+        payload["created_at"] = payload.get("created_at") or now
+        payload["updated_at"] = payload.get("updated_at") or now
+
+        news = News(**payload)
+        news.created_at = payload["created_at"]
+        news.updated_at = payload["updated_at"]
+
         db.add(news)
         db.commit()
         db.refresh(news)

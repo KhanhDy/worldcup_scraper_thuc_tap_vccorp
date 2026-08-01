@@ -7,12 +7,6 @@ class TopTeamResponse(BaseModel):
     titles: int
 
 
-class TopPlayerResponse(BaseModel):
-    player_id: int
-    player_name: str
-    total: int
-
-
 class TopMatchResponse(BaseModel):
     match_id: int
     world_cup_id: int

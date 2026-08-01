@@ -17,8 +17,6 @@ class MatchBase(BaseModel):
     team_1_penalty_score: int | None = None
     team_2_penalty_score: int | None = None
     winner_team_id: int | None = None
-    attendance: int | None = None
-    referee: str | None = None
 
 
 class MatchCreate(MatchBase):

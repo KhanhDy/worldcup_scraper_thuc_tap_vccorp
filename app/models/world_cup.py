@@ -25,6 +25,4 @@ class WorldCup(Base):
     )
     matches = relationship("Match", back_populates="world_cup")
     standings = relationship("Standing", back_populates="world_cup")
-    goals = relationship("Goal", back_populates="world_cup")
-    cards = relationship("Card", back_populates="world_cup")
     news = relationship("News", back_populates="world_cup")

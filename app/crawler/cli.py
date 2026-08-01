@@ -15,11 +15,8 @@ from urllib.request import Request, urlopen
 
 from app.database.base import Base
 from app.database.session import SessionLocal
-from app.models.cards import Card
-from app.models.goals import Goal
 from app.models.matches import Match
 from app.models.news import News
-from app.models.player import Player
 from app.models.standings import Standing
 from app.models.team import Team
 from app.models.world_cup import WorldCup
@@ -28,6 +25,7 @@ from app.repositories.news_repository import NewsRepository
 from app.repositories.team_repository import TeamRepository
 from app.repositories.world_cup_repository import WorldCupRepository
 from app.schemas.match import MatchCreate
+from app.schemas.news import NewsCreate
 from app.schemas.team import TeamCreate
 from app.schemas.world_cup import WorldCupCreate
 DEFAULT_WORLD_CUP_URL = "https://www.fifa.com/en/tournaments/mens/worldcup/canadamexicousa2026"
@@ -191,8 +189,6 @@ def build_match_record(match: dict[str, object], world_cup_id: int) -> dict[str,
         "team_1_penalty_score": int(penalty_1) if penalty_1 not in (None, "") else None,
         "team_2_penalty_score": int(penalty_2) if penalty_2 not in (None, "") else None,
         "winner_team_id": None,
-        "attendance": None,
-        "referee": None,
     }
 
 
@@ -662,8 +658,6 @@ def sync_jobs(jobs: Iterable[CrawlJob], output_dir: Path, timeout: int) -> int:
                                     team_1_penalty_score=record["team_1_penalty_score"],
                                     team_2_penalty_score=record["team_2_penalty_score"],
                                     winner_team_id=record["winner_team_id"],
-                                    attendance=record["attendance"],
-                                    referee=record["referee"],
                                 ),
                             )
 

@@ -1,10 +1,10 @@
 {
-  "entity": "teams",
+  "entity": "players",
   "source": "fifa",
-  "target_table": "teams",
+  "target_table": "players",
   "requested_url": "https://www.fifa.com/en/tournaments/mens/worldcup/canadamexicousa2026",
   "final_url": "https://www.fifa.com/en/tournaments/mens/worldcup/canadamexicousa2026",
-  "fetched_at": "2026-07-26T09:20:25.368534+00:00",
+  "fetched_at": "2026-07-26T09:20:25.673338+00:00",
   "headers": {
     "content-type": "text/html; charset=utf-8",
     "cache-control": "public, max-age=60",
@@ -26,8 +26,8 @@
     "connection": "close",
     "x-fifa-current-age": "55",
     "x-fifa-internal-ttl": "60",
-    "akamai-grn": "0.a4100217.1785057626.2e303b04",
-    "set-cookie": "bm_sz=B33B07D8C08FEF0F122CBBA2A23481F4~YAAQpBACF7+hh12fAQAAqci5nQCWHjoBoY4gFBb9OWf4UMnOifcafFsS/MO1EWtV2sNJjTvrDcHDVg15hkYmhQcuqXelM1KzGTROzxb/T87DJmp/zatwa5DqTjdsz5sV2u70K0s5aWckHRg8BwopMqrdy4GtBNvCQP5sODf01EkNPemEPtPxiOynefDFmgkJnO0zR0aW8+ewfGx4a0A6Q9nV8f+h1UhPpwlW1XgzPjFJKo8QeUAiiwwF88Mj2f8KLjlCk75ug3h5S0oKZqWVwLpvpdTLsGPha+gt0rT1/hLRr3yiPGaVCRO7CnmbBMgapNDDoxKTRxdP/VvhbySbCyRg6b96OTl2Xudz5w==~4273478~3228482; Domain=.fifa.com; Path=/; Expires=Sun, 26 Jul 2026 13:20:26 GMT; Max-Age=14400",
+    "akamai-grn": "0.a4100217.1785057626.2e303bd5",
+    "set-cookie": "bm_sz=0BAA116C5AA564B1DE50150667C6FA80~YAAQpBACF8Whh12fAQAA28m5nQACQldgc+BkDBrUSEoxpIKnayFL7ANPar1T4gcLK/Nrv9Yu47PrI5Kdudt+c3eFDoDBPzZa5MUTtw9y22KwrVLO5LSACBrPxC8DDhKTTLLsCNiDBnDrdA9KBNbmwg9gygQaBMPfQGQS3GeTPH6Dyjdr1E2dCHFuivpMQps8oItktpMmTrF36m1BrTdfenffhAO3aLxpEAknPf3nxxiIXBKpegrN8+87zGSJ7SvTX/GOXZz5YKGK8uXQfscaXmf0ds3coc50gQKLKCVFl5z+Rjo4dHrm//WqR1Y/nOVoqGZVgiXtTfQUv/vyapBBcCa1RavU3588BMe6lA==~4273478~3228482; Domain=.fifa.com; Path=/; Expires=Sun, 26 Jul 2026 13:20:26 GMT; Max-Age=14400",
     "final-url": "https://www.fifa.com/en/tournaments/mens/worldcup/canadamexicousa2026"
   },
   "parsed": {
