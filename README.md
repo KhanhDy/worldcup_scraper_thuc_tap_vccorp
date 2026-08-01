@@ -98,13 +98,6 @@ tests/                         # Unit test + integration test (33 test)
 | `standings` | Bảng xếp hạng theo bảng đấu của từng kỳ | N—1 với `world_cups`, `teams` |
 | `news` | Tin tức đã crawl, gắn với 1 kỳ World Cup cụ thể | N—1 với `world_cups` |
 
-Chi tiết migration:
-- `ef88325b1a6f` — khởi tạo toàn bộ bảng
-- `08261c197c69` — vá lỗi thiếu `server_default` cho cột `created_at`/`updated_at`
-- `286ff9a553b3` — loại bỏ 2 cột `attendance`/`referee` khỏi `matches` và loại
-  bỏ hẳn 3 bảng `players`, `goals`, `cards` (thu hẹp phạm vi dữ liệu về đúng
-  yêu cầu: trận đấu, BXH, tin tức)
-
 ## 5. Cài đặt
 
 **Yêu cầu:** Python 3.10+, PostgreSQL đang chạy.
@@ -220,15 +213,9 @@ python -m unittest discover -s tests -p "test_*.py" -v
 
 - `teams.fifa_code`/`teams.continent` chỉ có giá trị cho các kỳ 2014, 2018,
   2026 (nguồn dữ liệu mở không cung cấp cho các năm khác).
-- Cờ `standings.qualified` là suy luận (mặc định top 2/bảng đi tiếp), có thể
-  không chính xác với các kỳ dùng thể thức đặc biệt (VD vòng bảng thứ hai ở
-  1974/1978).
-- Crawler tin tức không trích xuất được tên tác giả bài viết đáng tin cậy từ
-  mọi trang — hiện gán tạm bằng tên toà soạn.
+- Crawler tin tức không trích xuất được tên tác giả bài viết — hiện gán tạm bằng tên toà soạn.
 - Tuổi Trẻ/Thanh Niên chỉ crawl được trang danh sách đầu tiên do cơ chế tải
   thêm bài bằng JavaScript (không có URL phân trang tĩnh).
-- Không lưu trữ dữ liệu cầu thủ, bàn thắng, thẻ phạt (đã loại khỏi phạm vi dự
-  án — xem migration `286ff9a553b3`).
 
 ## 10. Định hướng phát triển
 
