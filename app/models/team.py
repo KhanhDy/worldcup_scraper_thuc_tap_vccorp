@@ -11,7 +11,6 @@ class Team(Base):
     fifa_code: Mapped[str | None] = mapped_column(String(10), nullable=True)
     continent: Mapped[str | None] = mapped_column(String(50), nullable=True)
 
-    players = relationship("Player", back_populates="team")
     champion_world_cups = relationship(
         "WorldCup",
         foreign_keys="[WorldCup.champion_team_id]",

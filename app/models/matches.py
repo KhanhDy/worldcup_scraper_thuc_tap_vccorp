@@ -21,8 +21,6 @@ class Match(Base):
     team_1_penalty_score: Mapped[int | None] = mapped_column(Integer, nullable=True)
     team_2_penalty_score: Mapped[int | None] = mapped_column(Integer, nullable=True)
     winner_team_id: Mapped[int | None] = mapped_column(ForeignKey("teams.id"), nullable=True)
-    attendance: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    referee: Mapped[str | None] = mapped_column(String(100), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime,
@@ -35,6 +33,4 @@ class Match(Base):
     team_1 = relationship("Team", foreign_keys=[team_1_id])
     team_2 = relationship("Team", foreign_keys=[team_2_id])
     winner_team = relationship("Team", foreign_keys=[winner_team_id])
-    goals = relationship("Goal", back_populates="match")
-    cards = relationship("Card", back_populates="match")
 

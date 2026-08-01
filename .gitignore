@@ -1,9 +1,24 @@
-.gitignore
-
+# Secrets / cấu hình local - KHÔNG được push (chứa mật khẩu DB thật)
+.env
+app/.env
 alembic.ini
 
+# Python
 __pycache__/
-
 *.py[cod]
+*.egg-info/
+
+# Virtual environment
+.venv/
+venv/
+
+# Database file local (SQLite fallback) / cache crawl thô
+*.db
+data/
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
 
 PROJECT_DOCUMENTATION.md
