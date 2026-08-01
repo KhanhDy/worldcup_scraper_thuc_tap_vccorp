@@ -4,8 +4,6 @@ Backend hệ thống thu thập, lưu trữ và cung cấp API dữ liệu World
 trận đấu, bảng xếp hạng, thông tin đội tuyển qua các kỳ giải (1930–2026), và
 tin tức bóng đá tiếng Việt liên quan.
 
-> Đồ án thực tập tại VCCorp.
-
 ---
 
 ## Mục lục
